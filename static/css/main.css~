@@ -1,0 +1,37 @@
+body {
+  font-family: 'Roboto Condensed', sans-serif;
+}
+
+.container{
+	width: 95%;
+}
+.navigation{
+	text-align: center;
+}
+.link-submit{
+	margin: 10px;
+}
+.link-submit input{
+	margin-bottom: 10px;
+}
+.link-submit textarea{
+	margin-bottom: 10px;
+}
+i{
+	color: #9DA1AA;
+}
+.description{
+	color:#666;
+}
+.time{
+	color:#999;
+	font-size: 11px;
+}
+.footer{
+	background-color:#F5F5F5;
+	margin: 0 auto;
+}
+
+.footer .row{
+	padding: 30px 0 20px 0;
+}
