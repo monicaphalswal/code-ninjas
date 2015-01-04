@@ -1,5 +1,10 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
 body {
-  font-family: 'Roboto Condensed', sans-serif;
+    margin: 0 0 100px; /* bottom = footer height */
+    font-family: 'Roboto Condensed', sans-serif; /*font-family: "Roboto", Verdana, sans-serif;*/
 }
 
 .container{
@@ -27,15 +32,20 @@ i{
 	color:#999;
 	font-size: 11px;
 }
-.footer{
-	background-color:#F5F5F5;
-	margin: 0 auto;
+
+footer {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 100px;
+    width: 100%;
+    background:#F5F5F5; 
+    padding:30px 0 0 0;
+    text-align: center;
 }
 
-.footer .row{
-	padding: 30px 0 20px 0;
+footer .container{
+	padding: 0 30% 0 30%;
 }
 
-.footer iframe{
-	margin: 0 auto;
-}
+

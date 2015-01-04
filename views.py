@@ -8,6 +8,8 @@ from models import Greeting, Link, Tag, Upvote, Downvote
 import jinja2
 import webapp2
 
+from google.appengine.api import oauth
+
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)+ '/templates/'),
@@ -25,6 +27,24 @@ def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
     """Constructs a Datastore key for a Guestbook entity with guestbook_name."""
     return ndb.Key('Guestbook', guestbook_name)
 
+class RanksPage(webapp2.RequestHandler):
+    def get(self):
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+        
+        template_values = {
+            'url_linktext': url_linktext,
+            'url': url,
+            'user':user,
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('ranks.html')
+        self.response.write(template.render(template_values))
 
 
 class MainPage(webapp2.RequestHandler):
@@ -38,7 +58,8 @@ class MainPage(webapp2.RequestHandler):
 
         links = db.Query(Link)
 
-        if users.get_current_user():
+        user = users.get_current_user()
+        if user:
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
         else:
@@ -51,12 +72,13 @@ class MainPage(webapp2.RequestHandler):
             'url': url,
             'url_linktext': url_linktext,
             'links' : links,
+            'user' : user,
         }
 
         template = JINJA_ENVIRONMENT.get_template('index.html')
         self.response.write(template.render(template_values))
 
-class Guestbook(webapp2.RequestHandler):
+class SubmitLink(webapp2.RequestHandler):
     def post(self):
 
         url = self.request.get("url")
@@ -94,5 +116,6 @@ class Guestbook(webapp2.RequestHandler):
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/sign', Guestbook),
+    ('/submitlink', SubmitLink),
+    ('/ranks', RanksPage),
 ], debug=True)
