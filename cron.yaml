@@ -1,0 +1,4 @@
+cron:
+- description: daily deletion task
+  url: /tasks/delete
+  schedule: every 24 hours

@@ -1,35 +1,31 @@
-from google.appengine.ext import db, ndb
-
-class Greeting(ndb.Model):
-    """Models an individual Guestbook entry."""
-    author = ndb.UserProperty()
-    content = ndb.StringProperty(indexed=False)
-    date = ndb.DateTimeProperty(auto_now_add=True)
+from google.appengine.ext import db
 
 class Link(db.Model):
     """Models a unique tutorial link submission."""
     url = db.LinkProperty()
     heading = db.StringProperty(indexed=False)
     description = db.TextProperty()
-    upvotes = db.IntegerProperty(default=0)
-    downvotes = db.IntegerProperty(default=0)
+    stars = db.IntegerProperty(default=0)
     author = db.UserProperty()
     date = db.DateTimeProperty(auto_now_add=True)
+
+    @classmethod
+    def is_starred(cla):
+        return 1
 
 class Tag(db.Model):
     """Models tags for a URL."""
     tag = db.StringProperty()
-    link = db.ReferenceProperty(Link)
+    link = db.ReferenceProperty(Link, collection_name='tags')
 
-
-class Upvote(db.Model):
-    """Models upvotes for a URL."""
+class Star(db.Model):
+    """Models stars for a URL."""
     author = db.UserProperty()
-    link = db.ReferenceProperty(Link)
+    link = db.ReferenceProperty(Link, collection_name='starred')
+
+    @classmethod
+    def count_upvotes(cls, ancestor_key):
+        return cls.query(ancestor=ancestor_key).order(-cls.date)
 
 
-class Downvote(db.Model):
-    """Models downvotes for a URL."""
-    author = db.UserProperty()
-    link = db.ReferenceProperty(Link)
 

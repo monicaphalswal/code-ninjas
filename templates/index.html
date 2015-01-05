@@ -2,19 +2,7 @@
 {% block navmenu %}
           <ul class="nav navbar-nav">
             <li class="active"><a href="/">Home <span class="sr-only">(current)</span></a></li>
-            <li><a href="/ranks">Ranks</a></li>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
-              <ul class="dropdown-menu" role="menu">
-                <li><a href="#">Action</a></li>
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
-                <li class="divider"></li>
-                <li><a href="#">Separated link</a></li>
-                <li class="divider"></li>
-                <li><a href="#">One more separated link</a></li>
-              </ul>
-            </li>
+            <li><a href="/tags">Tags</a></li>
           </ul>
 {% endblock %}
 
@@ -32,20 +20,30 @@
                       <div class="description">
                         <i class="fa fa-book" title="Description"></i> {{ link.description }}
                       </div>
+                        <div class="tags">    
+                        {% for tag in link.tags %} 
+                            <a href="/tags/{{ tag.tag }}">{{ tag.tag }}</a>
+                        {% endfor %} 
+                        </div> 
+
                   </div>
                   <div class="panel-footer">
-                    <div class="time">
-                      <div class="row">
-                        <div class="col-md-2">
-                          <i class="fa fa-clock-o" title="{{ link.date }}"></i> {{ link.date.strftime('%d-%m-%y') }}
-                        </div>
-                        <div class="col-md-1">
-                          <i class="fa fa-thumbs-o-up" title="Upvotes"></i> {{ link.upvotes}}
-                        </div>
-                        <div class="col-md-2">
-                          <i class="fa fa-thumbs-o-down" title="Downvotes"></i> {{ link.downvotes }}
-                        </div>
-                      </div>
+                    <div class="btn-group btn-group-justified link-footer" role="group" aria-label="Justified button group">
+                      <a href="/link/{{ link.key().id() }}" class="btn btn-default" role="button">
+                        <i class="fa fa-clock-o" title="{{ link.date }}"></i> {{ link.date.strftime('%d-%m-%y') }}
+                      </a>
+
+                        {% for star in link.starred %} 
+                          {% if star.author == user %}
+                            <a href="#" class="btn btn-default starred" link_id="{{ link.key().id() }}" role="button">
+                            <i class="fa fa-star" title="Favorites"></i> {{ link.stars }} 
+                          {% else %}
+                            <a href="#" class="btn btn-default star" link_id="{{ link.key().id() }}" role="button">
+                            <i class="fa fa-star" title="Favorites"></i> {{ link.stars }} 
+                          {% endif %}
+                        {% endfor %}
+
+                      </a>
                     </div>
                   </div>
                 </div>

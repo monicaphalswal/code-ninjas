@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+        {% block navmenu %}
+          <ul class="nav navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/tags">Tags</a></li>
+          </ul>
+          {% endblock %}
+
+{% block content %}
+    <section>
+      <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+              {% for tag in tags %}
+                <div class="panel panel-default">
+                  <div class="panel-body">
+                      <div class="link">
+                        <i class="fa fa-link" title="Url"></i> <a href="{{ tag.link.url }}">{{  tag.link.heading }}</a>
+                      </div>
+                      <div class="description">
+                        <i class="fa fa-book" title="Description"></i> {{ tag.link.description }}
+                      </div> 
+                  </div>
+                  <div class="panel-footer">
+                    <div class="btn-group btn-group-justified link-footer" role="group" aria-label="Justified button group">
+                      <a href="/link/{{ tag.link.key().id() }}" class="btn btn-default" role="button">
+                        <i class="fa fa-clock-o" title="{{ tag.link.date }}"></i> {{ tag.link.date.strftime('%d-%m-%y') }}
+                      </a>
+
+                        {% for star in tag.link.starred %} 
+                          {% if star.author == user %}
+                            <a href="#" class="btn btn-default starred" link_id="{{ tag.link.key().id() }}" role="button">
+                            <i class="fa fa-star" title="Favorites"></i> {{ tag.link.stars }} 
+                          {% else %}
+                            <a href="#" class="btn btn-default star" link_id="{{ tag.link.key().id() }}" role="button">
+                            <i class="fa fa-star" title="Favorites"></i> {{ tag.link.stars }} 
+                          {% endif %}
+                        {% endfor %}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="col-md-4">
+            </div>
+        </div>
+      </div>
+  </section>
+{% endblock %}

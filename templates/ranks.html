@@ -20,5 +20,7 @@
           {% endblock %}
 
 {% block content %}
- <;;>
+  {% for rating in codeforces_ratings%}
+    {{ rating }}
+  {% endfor %}
 {% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+        {% block navmenu %}
+          <ul class="nav navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/tags">Tags</a></li>
+          </ul>
+          {% endblock %}
+
+{% block content %}
+  <section>
+    <div class="container">
+      <div class="panel panel-default">
+                  <div class="panel-body">
+                      <div class="link">
+                        <i class="fa fa-link" title="Url"></i> <a href="{{ link.url }}">{{ link.heading }}</a>
+                      </div>
+                      <div class="description">
+                        <i class="fa fa-book" title="Description"></i> {{ link.description }}
+                      </div>
+                  </div>
+                  <div class="panel-footer">
+                    <div class="time">
+                      <div class="row">
+                        <div class="col-md-2">
+                          <a href="/link/{{ link.key().id() }}">
+                            <i class="fa fa-clock-o" title="{{ link.date }}"></i> {{ link.date.strftime('%d-%m-%y') }}
+                          </a>
+                        </div>
+                        <div class="col-md-1">
+                          <i class="fa fa-thumbs-o-up" title="Upvotes"></i> {{ link.upvotes}}
+                        </div>
+                        <div class="col-md-2">
+                          <i class="fa fa-thumbs-o-down" title="Downvotes"></i> {{ link.downvotes }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+    </div>
+  </section>
+{% endblock %}

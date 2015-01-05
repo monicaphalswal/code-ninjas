@@ -1,31 +1,19 @@
-
 import os
 import urllib
 
 from google.appengine.api import users
 from google.appengine.ext import db, ndb
-from models import Greeting, Link, Tag, Upvote, Downvote
+from models import Link, Tag, Star
 import jinja2
 import webapp2
-
-from google.appengine.api import oauth
-
+from google.appengine.api import urlfetch
+urlfetch.set_default_fetch_deadline(45)
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)+ '/templates/'),
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 
-
-DEFAULT_GUESTBOOK_NAME = 'default_guestbook'
-
-# We set a parent key on the 'Greetings' to ensure that they are all in the same
-# entity group. Queries across the single entity group will be consistent.
-# However, the write rate should be limited to ~1/second.
-
-def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
-    """Constructs a Datastore key for a Guestbook entity with guestbook_name."""
-    return ndb.Key('Guestbook', guestbook_name)
 
 class RanksPage(webapp2.RequestHandler):
     def get(self):
@@ -37,10 +25,15 @@ class RanksPage(webapp2.RequestHandler):
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
         
+        import urllib
+        import json
+        url = "http://codeforces.com/api/user.ratedList?activeOnly=true"
+        codeforces_ratings = json.loads(urllib.urlopen(url).read())
         template_values = {
             'url_linktext': url_linktext,
             'url': url,
             'user':user,
+            'codeforces_ratings':codeforces_ratings,
         }
 
         template = JINJA_ENVIRONMENT.get_template('ranks.html')
@@ -48,14 +41,10 @@ class RanksPage(webapp2.RequestHandler):
 
 
 class MainPage(webapp2.RequestHandler):
-
+    """
+        Handler for the home page.
+    """
     def get(self):
-        guestbook_name = self.request.get('guestbook_name',
-                                          DEFAULT_GUESTBOOK_NAME)
-        greetings_query = Greeting.query(
-            ancestor=guestbook_key(guestbook_name)).order(-Greeting.date)
-        greetings = greetings_query.fetch(10)
-
         links = db.Query(Link)
 
         user = users.get_current_user()
@@ -67,8 +56,6 @@ class MainPage(webapp2.RequestHandler):
             url_linktext = 'Login'
 
         template_values = {
-            'greetings': greetings,
-            'guestbook_name': urllib.quote_plus(guestbook_name),
             'url': url,
             'url_linktext': url_linktext,
             'links' : links,
@@ -79,43 +66,126 @@ class MainPage(webapp2.RequestHandler):
         self.response.write(template.render(template_values))
 
 class SubmitLink(webapp2.RequestHandler):
+    """
+        Handler to submit a new link.
+    """
     def post(self):
 
         url = self.request.get("url")
         heading = self.request.get("heading")
         description = self.request.get("description")
         tags = self.request.get("tags")
+        tags = tags.split(",")
         if url and heading and tags:
             p = Link(url = url,
                 heading = heading,
                 description = description,
+                author = users.get_current_user(),
                 )
             p.put()
             if p:
                 link = p.key()
-                q = Tag(link = link,
-                    tag = tags,
-                    )
-                q.put()
-        # We set the same parent key on the 'Greeting' to ensure each Greeting
-        # is in the same entity group. Queries across the single entity group
-        # will be consistent. However, the write rate to a single entity group
-        # should be limited to ~1/second.
-        
-        guestbook_name = self.request.get('guestbook_name',
-                                          DEFAULT_GUESTBOOK_NAME)
-        greeting = Greeting(parent=guestbook_key(guestbook_name))
-
-        if users.get_current_user():
-            greeting.author = users.get_current_user()
-
-        greeting.content = self.request.get('content')
-        greeting.put()
-
+                for tag in tags:
+                    tag = tag.replace (" ", "_")
+                    q = Tag(link = link,
+                            tag = tag,
+                            )
+                    q.put()
         self.redirect('/')
+
+class StarLink(webapp2.RequestHandler):
+    """
+        Handler to star a link.
+    """
+    def post(self):
+        import pdb
+        link = self.request.get('link')
+        author = users.get_current_user()
+        link = Link.get_by_id(int(link))
+        m = db.Query(Star)
+        m.filter('link =', link).filter('author =', author)
+        if author and link and not m:
+            q = Star(link = link,
+                author = author,
+                )
+            q.put()
+        self.response.write('success')
+
+
+class SingleLink(webapp2.RequestHandler):
+    """
+        Handler to dispaly a single link page.
+    """
+    def get(self, link_id):
+        link = Link.get_by_id(int(link_id)) 
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+        template_values = {
+            'url_linktext': url_linktext,
+            'url': url,
+            'user':user,
+            'link':link,
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('single_link.html')
+        self.response.write(template.render(template_values))
+
+class SingleTag(webapp2.RequestHandler):
+    """
+        Handler to dispaly a single tag page.
+    """
+    def get(self, tag_name):
+        tags = db.GqlQuery("SELECT * FROM Tag WHERE tag = :tag_name", tag_name=tag_name)
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+        template_values = {
+            'url_linktext': url_linktext,
+            'url': url,
+            'user':user,
+            'tags':tags,
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('single_tag.html')
+        self.response.write(template.render(template_values))
+
+class Tags(webapp2.RequestHandler):
+    """
+        Handler to dispaly all tags.
+    """
+    def get(self):
+        tags = db.GqlQuery("SELECT distinct tag FROM Tag")
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+        template_values = {
+            'url_linktext': url_linktext,
+            'url': url,
+            'user':user,
+            'tags':tags,
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('tags.html')
+        self.response.write(template.render(template_values))
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/submitlink', SubmitLink),
-    ('/ranks', RanksPage),
+    ('/__submitlink', SubmitLink),
+    ('/__star', StarLink),
+    ('/tags', Tags),
+    (r'/link/(\d+)', SingleLink),
+    (r'/tags/(\S+)', SingleTag),
 ], debug=True)
