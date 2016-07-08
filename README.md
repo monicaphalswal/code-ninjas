@@ -13,7 +13,7 @@ A Reddit style board to submit and find top rated articles/blogs about competiti
 
  - Submit a link
  - Add tags
- - User Aythentication
+ - User Authentication
  - Show a link page
  - Display all tags
  - Display all links with a specific tag
